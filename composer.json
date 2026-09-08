@@ -1,0 +1,60 @@
+{
+  "name": "tiny-owl-kit/observability",
+  "description": "TinyOwl PHP SDK — lightweight observability and event logging with enterprise-grade HMAC-SHA256 security",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "observability",
+    "logging",
+    "monitoring",
+    "tinyowl",
+    "hmac",
+    "security",
+    "analytics"
+  ],
+  "homepage": "https://tiny-owl-kit.io",
+  "support": {
+    "issues": "https://github.com/tiny-owl-kit/tiny-owl-php/issues",
+    "source": "https://github.com/tiny-owl-kit/tiny-owl-php"
+  },
+  "authors": [
+    {
+      "name": "TinyOwl - Vladimir Rancic",
+      "email": "vladimir.rancic@np011.se"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5",
+    "phpstan/phpstan": "^2.0",
+    "friendsofphp/php-cs-fixer": "^3.64"
+  },
+  "autoload": {
+    "psr-4": {
+      "TinyOwl\\Observability\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "TinyOwl\\Observability\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit --colors=always",
+    "stan": "phpstan analyse --memory-limit=512M",
+    "cs": "php-cs-fixer fix --dry-run --diff",
+    "cs-fix": "php-cs-fixer fix"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "php-http/discovery": false
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

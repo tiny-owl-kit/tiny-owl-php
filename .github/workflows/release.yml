@@ -1,0 +1,91 @@
+name: Release
+
+# Combined workflow: read VERSION → check tag → test → tag → GitHub Release.
+# Packagist publishes automatically from the new git tag via its GitHub webhook —
+# no token lives in this repo.
+#
+# Why one job: GITHUB_TOKEN tag pushes do NOT trigger downstream workflows, so
+# a separate auto-tag → publish.yml chain never fires. Mirrors tiny-owl-js/release.yml
+# and tiny-owl-python/release.yml.
+#
+# Skip logic:
+#   tag exists → no-op (idempotent; Packagist already has the version)
+#   tag missing → full flow: test → tag → GitHub Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - VERSION
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Read version from VERSION
+        id: pkg
+        run: |
+          VERSION=$(tr -d '[:space:]' < VERSION)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: tag_check
+        run: |
+          TAG="${{ steps.pkg.outputs.tag }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip (already tagged)
+        if: steps.tag_check.outputs.exists == 'true'
+        run: echo "${{ steps.pkg.outputs.tag }} is already tagged — Packagist will have picked it up. Nothing to do."
+
+      - name: Set up PHP
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: curl, json
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        if: steps.tag_check.outputs.exists == 'false'
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests
+        if: steps.tag_check.outputs.exists == 'false'
+        run: vendor/bin/phpunit --testsuite unit --colors=always
+
+      - name: Create and push tag
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.pkg.outputs.tag }}"
+          git push origin "${{ steps.pkg.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.pkg.outputs.tag }}
+          name: ${{ steps.pkg.outputs.tag }}
+          generate_release_notes: true
