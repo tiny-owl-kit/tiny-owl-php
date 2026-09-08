@@ -38,8 +38,11 @@ jobs:
       - name: Run unit tests
         run: vendor/bin/phpunit --testsuite unit --colors=always
 
+      # Runtime requires are PHP extensions only (no Composer packages), so
+      # `composer audit --no-dev` exits 1 with "No installed packages found".
+      # Audit the installed tree (including CI tooling) instead.
       - name: Security audit (composer)
-        run: composer audit --no-dev --format=plain
+        run: composer audit --format=plain
 
   e2e:
     name: E2E smoke test
