@@ -224,12 +224,14 @@ final class TinyOwl
      */
     public function getConfig(): array
     {
+        // apiKey / projectSecret are validated non-empty in the constructor, so
+        // presence flags are always true for a live instance (never leak values).
         $cfg = [
             'baseUrl' => $this->baseUrl,
             'timeout' => $this->timeout,
             'autoTraceId' => $this->autoTraceId,
-            'hasApiKey' => $this->apiKey !== '',
-            'hasProjectSecret' => $this->projectSecret !== '',
+            'hasApiKey' => true,
+            'hasProjectSecret' => true,
         ];
         if ($this->instanceTraceId !== null) {
             $cfg['instanceTraceId'] = $this->instanceTraceId;

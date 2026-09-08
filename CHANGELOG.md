@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-09-08
+
+### Fixed
+
+- PHPStan max: `getConfig()` no longer uses always-true empty-string checks for validated credentials.
+- PHPStan max: `Transport::tryJson()` returns `array<string, mixed>|null` with string keys only.
+
+## [0.1.1] — 2026-09-08
+
+### Changed
+
+- Patch release to re-trigger Packagist / release pipeline after initial `0.1.0` publish.
+
 ## [0.1.0] — 2026-09-07
 
 ### Added
@@ -25,5 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI: PHPUnit on PHP 8.1–8.3, PHPStan max, php-cs-fixer, composer audit, gated E2E.
 - Full test suite covering HMAC parity, JSON escaping, API, transport errors.
 
-[Unreleased]: https://github.com/tiny-owl-kit/tiny-owl-php/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/tiny-owl-kit/tiny-owl-php/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/tiny-owl-kit/tiny-owl-php/releases/tag/v0.1.2
+[0.1.1]: https://github.com/tiny-owl-kit/tiny-owl-php/releases/tag/v0.1.1
 [0.1.0]: https://github.com/tiny-owl-kit/tiny-owl-php/releases/tag/v0.1.0

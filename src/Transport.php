@@ -147,6 +147,18 @@ final class Transport
             return null;
         }
 
-        return is_array($decoded) ? $decoded : null;
+        if (!is_array($decoded)) {
+            return null;
+        }
+
+        $out = [];
+        foreach ($decoded as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+            $out[$key] = $value;
+        }
+
+        return $out;
     }
 }
