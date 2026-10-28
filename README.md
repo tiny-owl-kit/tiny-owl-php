@@ -37,6 +37,8 @@ $client->error('Payment failed', ['orderId' => 'ORD-9', 'reason' => 'declined'])
 | `timeout`        | `float`  | `5.0`                            | HTTP request timeout in seconds.                 |
 | `autoTraceId`    | `bool`   | `true`                           | Attach a stable UUID v4 trace ID to every event. |
 | `defaultContext` | `array`  | `[]`                             | Key/value pairs merged into every log call.      |
+| `service`        | `string` | unset                            | Service name, sent top-level and included in the HMAC signature when set. |
+| `environment`    | `string` | unset                            | Deployment environment (e.g. `production`), sent and signed when set. |
 
 ## Logging events
 
