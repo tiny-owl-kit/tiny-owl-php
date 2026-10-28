@@ -6,6 +6,7 @@ namespace TinyOwl\Observability\Tests;
 
 use PHPUnit\Framework\TestCase;
 use TinyOwl\Observability\Exception\TinyOwlValidationException;
+use TinyOwl\Observability\Security;
 use TinyOwl\Observability\TinyOwl;
 use TinyOwl\Observability\Transport;
 
@@ -263,5 +264,57 @@ final class ClientTest extends TestCase
         $this->assertSame(64, strlen($headers['x-signature']));
         $this->assertSame('application/json', $headers['Content-Type']);
         $this->assertSame(self::INGEST_URL, $this->lastRequest['url']);
+    }
+
+    public function testServiceAndEnvironmentSentTopLevel(): void
+    {
+        $this->makeClient(['service' => 'checkout-api', 'environment' => 'production'])->info('msg');
+        $payload = $this->lastPayload();
+        $this->assertSame('checkout-api', $payload['service']);
+        $this->assertSame('production', $payload['environment']);
+    }
+
+    public function testServiceAndEnvironmentSignedInHeaders(): void
+    {
+        $this->makeClient(['service' => 'checkout-api', 'environment' => 'production'])
+            ->info('msg', ['k' => 'v']);
+        $headers = $this->lastRequest['headers'];
+        $payload = Security::buildSignablePayload(
+            'msg',
+            'info',
+            ['k' => 'v'],
+            $headers['x-timestamp'],
+            $headers['x-nonce'],
+            $this->lastPayload()['traceId'],
+            'checkout-api',
+            'production',
+        );
+        $this->assertSame($headers['x-signature'], Security::signPayload($payload, self::SECRET));
+    }
+
+    public function testServiceAndEnvironmentOmittedWhenUnset(): void
+    {
+        $this->makeClient()->info('msg');
+        $payload = $this->lastPayload();
+        $this->assertArrayNotHasKey('service', $payload);
+        $this->assertArrayNotHasKey('environment', $payload);
+    }
+
+    public function testEmptyServiceAndEnvironmentIgnored(): void
+    {
+        $this->makeClient(['service' => '', 'environment' => ''])->info('msg');
+        $payload = $this->lastPayload();
+        $this->assertArrayNotHasKey('service', $payload);
+        $this->assertArrayNotHasKey('environment', $payload);
+    }
+
+    public function testServiceAndEnvironmentPropagatedToWithContext(): void
+    {
+        $child = $this->makeClient(['service' => 'checkout-api', 'environment' => 'production'])
+            ->withContext(['request_id' => 'r-1']);
+        $child->info('msg');
+        $payload = $this->lastPayload();
+        $this->assertSame('checkout-api', $payload['service']);
+        $this->assertSame('production', $payload['environment']);
     }
 }

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-10-28
+
+### Added
+
+- Optional `service` and `environment` client options. When set, they are sent top-level and included in the HMAC signature (after `traceId`, before `timestamp`), matching the JS SDK canonical body.
+- `Security::buildSignablePayload()` and `Security::createSecureHeaders()` accept optional `service` and `environment` arguments.
+- Parity test vector v2 (`service`/`environment`) in `SecurityTest`.
+
 ## [0.1.2] — 2026-09-08
 
 ### Fixed

@@ -30,6 +30,19 @@ final class SecurityTest extends TestCase
         . '"nonce":"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"}';
     private const PARITY_SIGNATURE = 'cee771d25dcfb623fcefe37860dbac955fa10bf717e1de789cbbf2865a59b3e8';
 
+    // Do not change these constants. v2 adds service/environment after traceId.
+    private const PARITY_V2_SERVICE = 'checkout-api';
+    private const PARITY_V2_ENVIRONMENT = 'production';
+    private const PARITY_V2_CANONICAL = '{"message":"Payment processed","severity":"info",'
+        . '"context":{"order_id":"ORD-9","amount":49.99},'
+        . '"traceId":"req-abc-123",'
+        . '"service":"checkout-api",'
+        . '"environment":"production",'
+        . '"timestamp":"2026-08-19T10:20:30.000Z",'
+        . '"nonce":"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"}';
+    // Do not change this constant.
+    private const PARITY_V2_SIGNATURE = '55df60dfd253e50fe5357784b245bb9279d33ec06626eb555a6caceff49c02c4';
+
     protected function tearDown(): void
     {
         Security::$testTimestamp = null;
@@ -200,5 +213,53 @@ final class SecurityTest extends TestCase
         $with = Security::createSecureHeaders('msg', 'info', [], self::PARITY_SECRET, 'tr');
         $without = Security::createSecureHeaders('msg', 'info', [], self::PARITY_SECRET);
         $this->assertNotSame($with['x-signature'], $without['x-signature']);
+    }
+
+    public function testParityV2CanonicalString(): void
+    {
+        $payload = Security::buildSignablePayload(
+            self::PARITY_MESSAGE,
+            self::PARITY_SEVERITY,
+            self::PARITY_CONTEXT,
+            self::PARITY_TIMESTAMP,
+            self::PARITY_NONCE,
+            self::PARITY_TRACE_ID,
+            self::PARITY_V2_SERVICE,
+            self::PARITY_V2_ENVIRONMENT,
+        );
+        $this->assertSame(self::PARITY_V2_CANONICAL, Security::canonicalJson($payload));
+    }
+
+    public function testParityV2Vector(): void
+    {
+        $payload = Security::buildSignablePayload(
+            self::PARITY_MESSAGE,
+            self::PARITY_SEVERITY,
+            self::PARITY_CONTEXT,
+            self::PARITY_TIMESTAMP,
+            self::PARITY_NONCE,
+            self::PARITY_TRACE_ID,
+            self::PARITY_V2_SERVICE,
+            self::PARITY_V2_ENVIRONMENT,
+        );
+        $sig = Security::signPayload($payload, self::PARITY_SECRET);
+        $this->assertSame(
+            self::PARITY_V2_SIGNATURE,
+            $sig,
+            "HMAC parity failure!\n  got:      {$sig}\n  expected: " . self::PARITY_V2_SIGNATURE,
+        );
+    }
+
+    public function testServiceAndEnvironmentOmittedWhenNull(): void
+    {
+        $payload = Security::buildSignablePayload(
+            self::PARITY_MESSAGE,
+            self::PARITY_SEVERITY,
+            self::PARITY_CONTEXT,
+            self::PARITY_TIMESTAMP,
+            self::PARITY_NONCE,
+            self::PARITY_TRACE_ID,
+        );
+        $this->assertSame(self::PARITY_CANONICAL, Security::canonicalJson($payload));
     }
 }

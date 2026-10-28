@@ -68,7 +68,7 @@ final class Security
     /**
      * Build the ordered array that is HMAC-signed.
      *
-     * Key order is fixed: message → severity → context → [traceId] → timestamp → nonce.
+     * Key order is fixed: message → severity → context → [traceId] → [service] → [environment] → timestamp → nonce.
      * This must exactly match the order used by the backend and JS SDK.
      *
      * @param array<string, mixed> $context
@@ -82,6 +82,8 @@ final class Security
         string $timestamp,
         string $nonce,
         ?string $traceId = null,
+        ?string $service = null,
+        ?string $environment = null,
     ): array {
         $payload = [
             'message' => $message,
@@ -90,6 +92,12 @@ final class Security
         ];
         if ($traceId !== null) {
             $payload['traceId'] = $traceId;
+        }
+        if ($service !== null) {
+            $payload['service'] = $service;
+        }
+        if ($environment !== null) {
+            $payload['environment'] = $environment;
         }
         $payload['timestamp'] = $timestamp;
         $payload['nonce'] = $nonce;
@@ -120,6 +128,8 @@ final class Security
         array $context,
         string $projectSecret,
         ?string $traceId = null,
+        ?string $service = null,
+        ?string $environment = null,
     ): array {
         $timestamp = self::$testTimestamp ?? self::jsIsoTimestamp();
         $nonce = self::$testNonce ?? self::generateNonce();
@@ -130,6 +140,8 @@ final class Security
             $timestamp,
             $nonce,
             $traceId,
+            $service,
+            $environment,
         );
         $signature = self::signPayload($signable, $projectSecret);
 

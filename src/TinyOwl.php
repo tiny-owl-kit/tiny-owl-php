@@ -32,6 +32,8 @@ final class TinyOwl
     private readonly array $defaultContext;
 
     private readonly ?string $instanceTraceId;
+    private readonly ?string $service;
+    private readonly ?string $environment;
 
     /**
      * @param array{
@@ -41,6 +43,8 @@ final class TinyOwl
      *     timeout?: float|int,
      *     autoTraceId?: bool,
      *     defaultContext?: array<string, mixed>,
+     *     service?: string|null,
+     *     environment?: string|null,
      *     _instanceTraceId?: string|null
      * } $config
      */
@@ -64,6 +68,8 @@ final class TinyOwl
         $this->timeout = (float) ($config['timeout'] ?? self::DEFAULT_TIMEOUT);
         $this->autoTraceId = $config['autoTraceId'] ?? true;
         $this->defaultContext = $config['defaultContext'] ?? [];
+        $this->service = self::optionalString($config['service'] ?? null);
+        $this->environment = self::optionalString($config['environment'] ?? null);
 
         Transport::warnIfInsecure($this->baseUrl);
 
@@ -159,6 +165,12 @@ final class TinyOwl
         if ($resolvedTraceId !== null) {
             $payload['traceId'] = $resolvedTraceId;
         }
+        if ($this->service !== null) {
+            $payload['service'] = $this->service;
+        }
+        if ($this->environment !== null) {
+            $payload['environment'] = $this->environment;
+        }
 
         $headers = array_merge(
             ['Content-Type' => 'application/json'],
@@ -168,6 +180,8 @@ final class TinyOwl
                 $mergedContext,
                 $this->projectSecret,
                 $resolvedTraceId,
+                $this->service,
+                $this->environment,
             ),
         );
 
@@ -214,6 +228,8 @@ final class TinyOwl
             'autoTraceId' => $this->autoTraceId,
             'defaultContext' => $mergedDefault,
             '_instanceTraceId' => $childTraceId,
+            'service' => $this->service,
+            'environment' => $this->environment,
         ]);
     }
 
@@ -238,5 +254,10 @@ final class TinyOwl
         }
 
         return $cfg;
+    }
+
+    private static function optionalString(mixed $value): ?string
+    {
+        return is_string($value) && $value !== '' ? $value : null;
     }
 }
