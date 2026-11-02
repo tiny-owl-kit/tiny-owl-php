@@ -2,4 +2,6 @@ parameters:
   level: max
   paths:
     - src
+  excludePaths:
+    - src/Laravel
   treatPhpDocTypesAsCertain: false
