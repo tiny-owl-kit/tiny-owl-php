@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-11-02
+
+### Added
+
+- PSR-15 middleware `TinyOwl\Observability\Integration\Psr15Middleware`. Optional route template resolver.
+- Laravel middleware `TinyOwl\Observability\Laravel\TinyOwlMiddleware`, service provider and `config/tinyowl.php`.
+- Framework middleware sends `method`, `endpoint`, `routeTemplate`, `statusCode` and `durationMs` in context. Events are sent only for uncaught exceptions and status `>= 400`. Bodies, query strings, headers and cookies are never sent.
+- Tests for PSR-15 behavior and examples in `examples/framework-middleware.php`.
+
 ## [0.2.0] — 2026-10-28
 
 ### Added

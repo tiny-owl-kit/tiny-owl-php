@@ -104,6 +104,41 @@ try {
 }
 ```
 
+## Framework middleware
+
+The middleware adds `method`, `endpoint` (route template or path without query string),
+`routeTemplate`, `statusCode` and `durationMs` to the event context. It sends an event only for
+uncaught exceptions and responses with status `>= 400`. Request bodies, query strings, headers
+and cookies are never sent, and SDK errors never break the application.
+
+### PSR-15
+
+```php
+use TinyOwl\Observability\Integration\Psr15Middleware;
+
+$pipeline->pipe(new Psr15Middleware($client, static function ($request): ?string {
+    $template = $request->getAttribute('routeTemplate');
+    return is_string($template) ? $template : null;
+}));
+```
+
+Place the middleware after your routing middleware, because the route resolver runs before the handler.
+The resolver is optional; without it, `endpoint` is the request path.
+
+### Laravel
+
+The package registers `TinyOwl\Observability\Laravel\TinyOwlServiceProvider` automatically. Set
+`TINYOWL_API_KEY`, `TINYOWL_PROJECT_SECRET`, and optionally `TINYOWL_SERVICE` and
+`TINYOWL_ENVIRONMENT` (falls back to `APP_ENV`). Then append the middleware in `bootstrap/app.php`:
+
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->append(\TinyOwl\Observability\Laravel\TinyOwlMiddleware::class);
+})
+```
+
+Publish the config with `php artisan vendor:publish --tag=tinyowl-config` (optional).
+
 ## Introspection
 
 ```php
